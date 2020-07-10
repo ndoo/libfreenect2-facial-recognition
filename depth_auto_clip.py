@@ -5,11 +5,6 @@ import sys
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
 
-def moving_average(a, n=3) :
-    ret = np.cumsum(a, dtype=float)
-    ret[n:] = ret[n:] - ret[:-n]
-    return ret[n - 1:] / n
-
 ap = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 ap.add_argument("-s", "--smoothing", type=int, default=20,
@@ -70,11 +65,11 @@ while True:
     # Clip noise around nearest value by taking 20th lowest value
     nearest = np.partition(depth, 20, None)[19]
  
-    # Determine nearest value by updating buffer and taking the moving average
-    # A moving average is needed to combat flickering due to depth noise
+    # Determine nearest value by updating buffer and taking the average
+    # Needed to combat flickering due to depth noise
     nearest_buffer[:-1] = nearest_buffer[1:]
     nearest_buffer[-1] = nearest
-    nearest = moving_average(nearest_buffer, nearest_buffer.size)
+    nearest = np.average(nearest_buffer)
 
     # Apply clip from nearest
     depth = np.clip(depth, nearest, nearest + args["range"])
